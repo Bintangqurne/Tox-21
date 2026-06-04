@@ -130,7 +130,10 @@ class ModelService:
             cfg = self.model_info.get(name.lower())
             if not cfg:
                 continue
-            ckpt = PROJECT_ROOT / cfg["checkpoint_dir"]
+            # Gunakan CHECKPOINTS_DIR sebagai base agar path benar di Docker
+            # cfg["checkpoint_dir"] = "checkpoints/gcn_best", ambil nama folder saja
+            ckpt_name = Path(cfg["checkpoint_dir"]).name  # "gcn_best" atau "gat_best"
+            ckpt = CHECKPOINTS_DIR / ckpt_name
             if not ckpt.exists():
                 print(f"[ModelService] {name} checkpoint tidak ditemukan di {ckpt}, skip")
                 continue
