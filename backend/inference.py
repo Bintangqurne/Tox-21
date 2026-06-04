@@ -139,7 +139,8 @@ class ModelService:
                 continue
             try:
                 model = self._instantiate(name, cfg["hyperparameters"])
-                model.restore(model_dir=str(ckpt))
+                # map_location wajib untuk load CUDA checkpoint di CPU server
+                model.restore(model_dir=str(ckpt), map_location=self.device)
                 self.models[name] = model
                 self.per_task_scores[name] = cfg.get("per_task_test_scores", {})
                 print(f"[ModelService] {name} loaded from {ckpt} on {self.device}")
