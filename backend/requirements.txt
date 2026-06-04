@@ -13,7 +13,8 @@ torch==2.4.0+cpu
 
 # DeepChem + dependencies
 deepchem==2.8.0
-dgl==2.1.0          # CPU version tersedia di PyPI (2.4.0 hanya ada sebagai build CUDA)
+# DGL harus install dari wheel server resmi DGL, bukan PyPI
+# PyPI dgl tidak include compiled PyTorch backend → "This class requires dgl"
 scikit-learn>=1.3   # DeepChem butuh ini untuk metric
 joblib>=1.3
 
