@@ -139,8 +139,14 @@ class ModelService:
                 continue
             try:
                 model = self._instantiate(name, cfg["hyperparameters"])
-                # map_location wajib untuk load CUDA checkpoint di CPU server
-                model.restore(model_dir=str(ckpt), map_location=self.device)
+                # Patch torch.load sementara agar CUDA checkpoint bisa load di CPU
+                # DeepChem 2.8 tidak expose map_location di restore()
+                _orig_load = torch.load
+                torch.load = lambda *a, **kw: _orig_load(*a, **{**kw, "map_location": self.device})
+                try:
+                    model.restore(model_dir=str(ckpt))
+                finally:
+                    torch.load = _orig_load
                 self.models[name] = model
                 self.per_task_scores[name] = cfg.get("per_task_test_scores", {})
                 print(f"[ModelService] {name} loaded from {ckpt} on {self.device}")
