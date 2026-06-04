@@ -1,0 +1,42 @@
+{
+  "best_model": "GCN",
+  "gcn": {
+    "checkpoint_dir": "checkpoints/gcn_best",
+    "best_epoch": 50,
+    "train_roc_auc": 0.9114010933903662,
+    "valid_roc_auc": 0.8032931408941001,
+    "test_roc_auc": 0.8166348168665175,
+    "test_prc_auc": 0.2939355914597853,
+    "hyperparameters": {
+      "graph_conv_layers": [
+        128,
+        128
+      ],
+      "dropout": 0.3,
+      "learning_rate": 0.001,
+      "batch_size": 64
+    }
+  },
+  "gat": {
+    "checkpoint_dir": "checkpoints/gat_best",
+    "best_epoch": 50,
+    "train_roc_auc": 0.7930862185044173,
+    "valid_roc_auc": 0.7747017796385922,
+    "test_roc_auc": 0.7665001936815369,
+    "test_prc_auc": 0.2276682939342823,
+    "hyperparameters": {
+      "n_attention_heads": 4,
+      "dropout": 0.3,
+      "learning_rate": 0.001,
+      "batch_size": 64
+    }
+  },
+  "featurizer": "MolGraphConvFeaturizer(use_edges=True)",
+  "n_tasks": 12,
+  "training": {
+    "epochs_total": 60,
+    "check_every": 10,
+    "balancing_transformer": true,
+    "split": "random 80/10/10"
+  }
+}

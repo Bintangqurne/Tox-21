@@ -1,0 +1,32 @@
+# Render Blueprint untuk Tox21 GNN API.
+# Cara pakai: di dashboard Render, pilih "New +" → "Blueprint" → connect repo ini.
+# Render akan otomatis baca file ini dan setup service-nya.
+
+services:
+  - type: web
+    name: tox21-api
+    env: python
+    region: singapore   # ganti ke 'oregon' atau 'frankfurt' kalau perlu lain
+    plan: standard      # Free/Starter (512MB RAM) TIDAK CUKUP untuk DeepChem+PyTorch.
+                        # Standard = 2GB RAM. Lihat DEPLOY.md untuk alasannya.
+
+    # Lokasi kode backend di dalam monorepo
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    # Health check untuk auto-restart kalau crash
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      # Allowed origins tambahan untuk CORS (comma-separated).
+      # Catatan: qurne.com + semua subdomain + semua *.vercel.app sudah otomatis
+      # diizinkan via regex di main.py — env var ini hanya untuk domain LAIN
+      # (mis. custom domain non-qurne, staging server, dll). Boleh kosong.
+      - key: ALLOWED_ORIGINS
+        value: ""
+      # Optional: lokasi cache torch agar tidak download ulang setiap restart
+      - key: TORCH_HOME
+        value: /tmp/torch_cache

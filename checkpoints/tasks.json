@@ -1,0 +1,30 @@
+{
+  "tasks": [
+    "NR-AR",
+    "NR-AR-LBD",
+    "NR-AhR",
+    "NR-Aromatase",
+    "NR-ER",
+    "NR-ER-LBD",
+    "NR-PPAR-gamma",
+    "SR-ARE",
+    "SR-ATAD5",
+    "SR-HSE",
+    "SR-MMP",
+    "SR-p53"
+  ],
+  "descriptions": {
+    "NR-AR": "Androgen Receptor - disrupsi hormon reproduktif",
+    "NR-AR-LBD": "Androgen Receptor LBD - domain pengikatan ligand",
+    "NR-AhR": "Aryl hydrocarbon Receptor - aktivasi prokarsinogen",
+    "NR-Aromatase": "CYP19A1 - konversi androgen ke estrogen",
+    "NR-ER": "Estrogen Receptor - endocrine disruptor",
+    "NR-ER-LBD": "Estrogen Receptor LBD - domain pengikatan ligand",
+    "NR-PPAR-gamma": "PPAR-gamma - regulasi diferensiasi adiposit",
+    "SR-ARE": "Antioxidant Response Element - stres oksidatif",
+    "SR-ATAD5": "ATAD5 - kerusakan DNA",
+    "SR-HSE": "Heat Shock - misfolding protein",
+    "SR-MMP": "Mitochondrial Membrane Potential - prekursor apoptosis",
+    "SR-p53": "p53 - kerusakan DNA berat"
+  }
+}

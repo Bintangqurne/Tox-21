@@ -1,0 +1,58 @@
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# ─── ML/DL artifacts (HANYA cache, BUKAN checkpoints model kita) ─────────────
+~/.deepchem/
+/tmp/torch_cache/
+*.log
+
+# ─── IDE & OS ────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ─── Build artifacts ─────────────────────────────────────────────────────────
+dist/
+build/
+*.egg
+
+# ─── Node (kalau ada di root) ────────────────────────────────────────────────
+node_modules/
+
+# ─── Secrets ─────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# ─── PENTING: jangan ignore folder ini! ──────────────────────────────────────
+# checkpoints/ → wajib di-commit, dipakai backend untuk load model
+# !checkpoints/
+# tox21*.csv → dataset cache, opsional di-commit
+
+# Dataset CSV (besar, tidak perlu di repo)
+tox21.csv
+tox21_clean.csv
+results_summary.csv
+
+# Folder lama
+DrugDiscovery-Tox21/
+tox21_cs221/
+
+# Claude settings
+.claude/

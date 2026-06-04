@@ -1,0 +1,23 @@
+# Production requirements untuk deployment ke Render (CPU-only).
+# Untuk development lokal dengan GPU, install torch CUDA secara terpisah dulu.
+
+# Web framework
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.5
+python-multipart>=0.0.9
+
+# ML stack — CPU-only PyTorch (jauh lebih kecil daripada CUDA build, ~200MB vs ~2GB)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.0+cpu
+
+# DeepChem + dependencies
+deepchem==2.8.0
+dgl==2.4.0          # Graph backend untuk GCN/GAT
+scikit-learn>=1.3   # DeepChem butuh ini untuk metric
+joblib>=1.3
+
+# Kimia & numerik
+rdkit>=2023.3
+numpy>=1.24,<2.0    # DeepChem 2.8 belum kompatibel NumPy 2.x
+pandas>=2.0
