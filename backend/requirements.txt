@@ -13,8 +13,7 @@ torch==2.4.0+cpu
 
 # DeepChem + dependencies
 deepchem==2.8.0
-# DGL harus install dari wheel server resmi DGL, bukan PyPI
-# PyPI dgl tidak include compiled PyTorch backend → "This class requires dgl"
+dgllife>=0.3.0      # DGL LifeScience — dibutuhkan oleh GCNModel/GATModel di DeepChem
 scikit-learn>=1.3   # DeepChem butuh ini untuk metric
 joblib>=1.3
 
