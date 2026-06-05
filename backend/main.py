@@ -31,12 +31,18 @@ from schemas import (
 )
 
 
+_load_error: str = ""
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global _load_error
     try:
         service.load()
     except Exception as e:
+        import traceback
+        _load_error = traceback.format_exc()
         print(f"[WARN] Model load failed: {e}")
+        print(_load_error)
     yield
 
 
@@ -84,6 +90,18 @@ def health():
         loaded_models=list(service.models.keys()),
         n_tasks=len(service.tasks),
     )
+
+
+@app.get("/api/debug")
+def debug():
+    """Tampilkan error load model — untuk troubleshooting deployment."""
+    return {
+        "model_loaded": service._loaded,
+        "load_error": _load_error or "none",
+        "checkpoints_dir": str(__import__('inference').CHECKPOINTS_DIR),
+        "checkpoints_exist": __import__('inference').CHECKPOINTS_DIR.exists(),
+        "python_version": __import__('sys').version,
+    }
 
 
 @app.get("/api/tasks", response_model=TasksResponse)
