@@ -108,36 +108,26 @@ export default function Home() {
 
         {tab === "single" && (
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Left column */}
-            <div className="flex flex-col gap-6">
-              <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                {/* Model selector */}
-                <div className="mb-3">
-                  <ModelSelector value={selectedModel} onChange={setSelectedModel} />
-                </div>
-                <SmilesInput
-                  value={smiles}
-                  onChange={setSmiles}
-                  onSubmit={() => handlePredict()}
-                  loading={loading}
-                />
-                {error && (
-                  <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {error}
-                  </p>
-                )}
+            {/* Input card — col 1 row 1 on desktop, first on mobile */}
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
+              <div className="mb-3">
+                <ModelSelector value={selectedModel} onChange={setSelectedModel} />
               </div>
-
-              <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                <MoleculeLibrary
-                  onSelect={setSmiles}
-                  onPredict={(s) => handlePredict(s)}
-                />
-              </div>
+              <SmilesInput
+                value={smiles}
+                onChange={setSmiles}
+                onSubmit={() => handlePredict()}
+                loading={loading}
+              />
+              {error && (
+                <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {error}
+                </p>
+              )}
             </div>
 
-            {/* Right column */}
-            <div className="flex flex-col gap-6">
+            {/* Results — col 2 row 1-2 on desktop (row-span-2), second on mobile */}
+            <div className="flex flex-col gap-6 md:row-span-2">
               {smiles.trim() && (
                 <MoleculeStructure
                   smiles={smiles.trim()}
@@ -160,6 +150,14 @@ export default function Home() {
                   Masukkan SMILES atau pilih molekul untuk mulai
                 </div>
               )}
+            </div>
+
+            {/* Library — col 1 row 2 on desktop, last on mobile */}
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
+              <MoleculeLibrary
+                onSelect={setSmiles}
+                onPredict={(s) => handlePredict(s)}
+              />
             </div>
           </div>
         )}
