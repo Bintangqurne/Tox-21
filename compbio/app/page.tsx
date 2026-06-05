@@ -109,7 +109,7 @@ export default function Home() {
         {tab === "single" && (
           <div className="grid gap-6 md:grid-cols-2">
             {/* Input card — col 1 row 1 on desktop, first on mobile */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-4">
+            <div className="self-start rounded-lg border border-zinc-200 bg-white p-4">
               <div className="mb-3">
                 <ModelSelector value={selectedModel} onChange={setSelectedModel} />
               </div>
