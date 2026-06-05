@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, PredictResponse, EndpointDetail, MetricsResponse } from "./lib/api";
 import SmilesInput from "./components/SmilesInput";
@@ -26,6 +26,8 @@ export default function Home() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
   const [importanceTask, setImportanceTask] = useState<string>("");
 
+  const resultsRef = useRef<HTMLDivElement>(null);
+
   // Fetch endpoint details + metrics once on mount
   useEffect(() => {
     api.endpoints().then(setEndpointDetails).catch(() => {});
@@ -44,6 +46,12 @@ export default function Home() {
     try {
       const res = await api.predict(target, selectedModel || undefined);
       setResult(res);
+      // Auto-scroll ke hasil di mobile setelah prediksi selesai
+      if (window.innerWidth < 768) {
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Prediksi gagal");
       setResult(null);
@@ -108,26 +116,35 @@ export default function Home() {
 
         {tab === "single" && (
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Input card — col 1 row 1 on desktop, first on mobile */}
-            <div className="self-start rounded-lg border border-zinc-200 bg-white p-4">
-              <div className="mb-3">
-                <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+            {/* Left column */}
+            <div className="flex flex-col gap-6">
+              <div className="rounded-lg border border-zinc-200 bg-white p-4">
+                <div className="mb-3">
+                  <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+                </div>
+                <SmilesInput
+                  value={smiles}
+                  onChange={setSmiles}
+                  onSubmit={() => handlePredict()}
+                  loading={loading}
+                />
+                {error && (
+                  <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {error}
+                  </p>
+                )}
               </div>
-              <SmilesInput
-                value={smiles}
-                onChange={setSmiles}
-                onSubmit={() => handlePredict()}
-                loading={loading}
-              />
-              {error && (
-                <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
-                  {error}
-                </p>
-              )}
+
+              <div className="rounded-lg border border-zinc-200 bg-white p-4">
+                <MoleculeLibrary
+                  onSelect={setSmiles}
+                  onPredict={(s) => handlePredict(s)}
+                />
+              </div>
             </div>
 
-            {/* Results — col 2 row 1-2 on desktop (row-span-2), second on mobile */}
-            <div className="flex flex-col gap-6 md:row-span-2">
+            {/* Right column */}
+            <div ref={resultsRef} className="flex flex-col gap-6">
               {smiles.trim() && (
                 <MoleculeStructure
                   smiles={smiles.trim()}
@@ -150,14 +167,6 @@ export default function Home() {
                   Masukkan SMILES atau pilih molekul untuk mulai
                 </div>
               )}
-            </div>
-
-            {/* Library — col 1 row 2 on desktop, last on mobile */}
-            <div className="rounded-lg border border-zinc-200 bg-white p-4">
-              <MoleculeLibrary
-                onSelect={setSmiles}
-                onPredict={(s) => handlePredict(s)}
-              />
             </div>
           </div>
         )}
