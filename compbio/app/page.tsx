@@ -107,7 +107,7 @@ export default function Home() {
         </div>
 
         {tab === "single" && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Left column */}
             <div className="flex flex-col gap-6">
               <div className="rounded-lg border border-zinc-200 bg-white p-4">

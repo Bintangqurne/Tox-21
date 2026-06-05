@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { api, PredictResponse } from "../lib/api";
+import { api, PredictResponse, ExampleMolecule } from "../lib/api";
 import SmilesInput from "../components/SmilesInput";
 import MoleculeStructure from "../components/MoleculeStructure";
 
@@ -41,6 +41,126 @@ function MiniPredictionTable({ predictions }: { predictions: PredictResponse["pr
   );
 }
 
+type MoleculeColumnProps = {
+  which: "A" | "B";
+  state: MoleculeState;
+  examples: ExampleMolecule[];
+  onSmilesChange: (s: string) => void;
+  onSubmit: () => void;
+};
+
+function MoleculeColumn({ which, state, examples, onSmilesChange, onSubmit }: MoleculeColumnProps) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = examples
+    .filter((m) => !query || m.name.toLowerCase().includes(query.toLowerCase()))
+    .slice(0, 10);
+
+  function selectMolecule(m: ExampleMolecule) {
+    onSmilesChange(m.smiles);
+    setQuery(m.name);
+    setOpen(false);
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-lg border border-zinc-200 bg-white p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          Molekul {which}
+        </p>
+
+        {/* Molecule picker */}
+        <div ref={containerRef} className="relative mb-3">
+          <label className="mb-1 block text-[11px] text-zinc-400">
+            Pilih dari library
+          </label>
+          <div className="relative">
+            <svg
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400 pointer-events-none"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+              onFocus={() => setOpen(true)}
+              placeholder={examples.length ? `Cari dari ${examples.length} molekul...` : "Memuat..."}
+              className="w-full rounded-md border border-zinc-200 bg-zinc-50 pl-8 pr-8 py-1.5 text-xs text-zinc-700 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+            />
+            {query && (
+              <button
+                onClick={() => { setQuery(""); setOpen(true); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {open && filtered.length > 0 && (
+            <div className="absolute z-20 mt-1 w-full rounded-md border border-zinc-200 bg-white shadow-lg max-h-52 overflow-y-auto">
+              {filtered.map((m) => (
+                <button
+                  key={m.name}
+                  onMouseDown={(e) => { e.preventDefault(); selectMolecule(m); }}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-zinc-50 transition-colors"
+                >
+                  <span className="font-medium text-zinc-800">{m.name}</span>
+                  <span className="ml-2 shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] capitalize text-zinc-500">
+                    {m.category.replace("_", " ")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-1.5 text-[11px] text-zinc-400">atau masukkan SMILES manual</div>
+        <SmilesInput
+          value={state.smiles}
+          onChange={onSmilesChange}
+          onSubmit={onSubmit}
+          loading={state.loading}
+        />
+        {state.error && (
+          <p className="mt-2 rounded bg-red-50 px-2 py-1 text-xs text-red-700">{state.error}</p>
+        )}
+      </div>
+
+      {state.smiles.trim() && (
+        <MoleculeStructure smiles={state.smiles.trim()} />
+      )}
+
+      {state.result && (
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <h4 className="mb-3 text-xs font-medium text-zinc-600">
+            Prediksi ({state.result.model})
+          </h4>
+          <MiniPredictionTable predictions={state.result.predictions} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ComparePage() {
   const [molA, setMolA] = useState<MoleculeState>({
     smiles: "", loading: false, result: null, error: null,
@@ -48,11 +168,13 @@ export default function ComparePage() {
   const [molB, setMolB] = useState<MoleculeState>({
     smiles: "", loading: false, result: null, error: null,
   });
+  const [examples, setExamples] = useState<ExampleMolecule[]>([]);
 
-  async function predict(
-    which: "A" | "B",
-    smiles: string,
-  ) {
+  useEffect(() => {
+    api.examples().then(setExamples).catch(() => {});
+  }, []);
+
+  async function predict(which: "A" | "B", smiles: string) {
     const setter = which === "A" ? setMolA : setMolB;
     setter((prev) => ({ ...prev, smiles, loading: true, error: null }));
     try {
@@ -93,50 +215,6 @@ export default function ComparePage() {
     return rows.sort((a, b) => Math.abs(b.delta ?? 0) - Math.abs(a.delta ?? 0));
   })();
 
-  function MoleculeColumn({
-    which,
-    state,
-    onSmilesChange,
-    onSubmit,
-  }: {
-    which: "A" | "B";
-    state: MoleculeState;
-    onSmilesChange: (s: string) => void;
-    onSubmit: () => void;
-  }) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="mb-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            Molekul {which}
-          </p>
-          <SmilesInput
-            value={state.smiles}
-            onChange={onSmilesChange}
-            onSubmit={onSubmit}
-            loading={state.loading}
-          />
-          {state.error && (
-            <p className="mt-2 rounded bg-red-50 px-2 py-1 text-xs text-red-700">{state.error}</p>
-          )}
-        </div>
-
-        {state.smiles.trim() && (
-          <MoleculeStructure smiles={state.smiles.trim()} />
-        )}
-
-        {state.result && (
-          <div className="rounded-lg border border-zinc-200 bg-white p-4">
-            <h4 className="mb-3 text-xs font-medium text-zinc-600">
-              Prediksi ({state.result.model})
-            </h4>
-            <MiniPredictionTable predictions={state.result.predictions} />
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
@@ -159,16 +237,18 @@ export default function ComparePage() {
         </p>
 
         {/* Side-by-side columns */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           <MoleculeColumn
             which="A"
             state={molA}
+            examples={examples}
             onSmilesChange={(s) => setMolA((p) => ({ ...p, smiles: s }))}
             onSubmit={() => predict("A", molA.smiles)}
           />
           <MoleculeColumn
             which="B"
             state={molB}
+            examples={examples}
             onSmilesChange={(s) => setMolB((p) => ({ ...p, smiles: s }))}
             onSubmit={() => predict("B", molB.smiles)}
           />
@@ -220,7 +300,6 @@ export default function ComparePage() {
                       <td className="px-3 py-2">
                         {row.probA != null && row.probB != null && (
                           <div className="flex items-center gap-1">
-                            {/* A bar (left-aligned, red scale) */}
                             <div className="relative h-2 w-16 overflow-hidden rounded-full bg-zinc-100">
                               <div
                                 className="absolute left-0 h-full rounded-full bg-red-400"
@@ -228,7 +307,6 @@ export default function ComparePage() {
                               />
                             </div>
                             <span className="text-[10px] text-zinc-400">vs</span>
-                            {/* B bar */}
                             <div className="relative h-2 w-16 overflow-hidden rounded-full bg-zinc-100">
                               <div
                                 className="absolute left-0 h-full rounded-full bg-blue-400"
